@@ -1,0 +1,3 @@
+build:
+        - cmd: sleep 120
+          timeout: 130

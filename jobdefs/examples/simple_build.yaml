@@ -1,0 +1,21 @@
+pre_clone:
+        - cmd: export MYWORKSPACE=/tmp/test
+        - cmd: rm -rf /tmp/test
+        - cmd: mkdir -p $MYWORKSPACE
+
+clone:
+        - cmd: cd $MYWORKSPACE
+        - cmd: git clone https://github.com/OP-TEE/optee_client.git
+          timeout: 20
+
+pre_build:
+        - cmd: mkdir -p $MYWORKSPACE/$PR_NAME/build
+        - cmd: cd $MYWORKSPACE/$PR_NAME/build
+        - cmd: export PATH=:/home/optee/devel/reference/toolchains/aarch32/bin:$PATH
+        - cmd: cmake -DCMAKE_C_COMPILER=arm-linux-gnueabihf-gcc -DCMAKE_INSTALL_PREFIX=/tmp/optee_client/install ..
+
+build:
+        - cmd: make
+
+post_build:
+        - cmd: make install

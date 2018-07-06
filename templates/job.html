@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+{% set id,    pr_id,  pr_sha1,  pr_full_name,  pr_number,  date,  run_time,  status =
+       sd[0], sd[1],  sd[2],    sd[3],         sd[4],      sd[5], sd[6],     sd[7] %}
+<head>
+	<title>IBART - {{ pr_full_name }} - #PR{{ pr_number }}</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+	<script src = "{{ url_for('static', filename = 'main.js') }}"></script>
+	<link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body class="content">
+	<a href="https://github.com/jbech-linaro/ibart"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png" alt="Fork me on GitHub"></a>
+	<p class="c">
+		I Build And Run Tests!
+	</p>
+	<div class="link">
+		<a href="{{url_for('main_page')}}">Go to main page</a>
+	</div>
+	<table>
+		<tr>
+			<th>Git</th>
+			<th>PR#</th>
+			<th>Last commit</th>
+			<th>Branch</th>
+			<th>Date</th>
+			<th>Runtime</th>
+			<th>Status</th>
+			<th>Command</th>
+		</tr>
+		<tr>
+			<td><a href="https://github.com/{{ pr_full_name }}">{{ pr_full_name }}</a></td>
+			<td><a href="https://github.com/{{ pr_full_name }}/pull/{{ pr_number }}">{{ pr_number }}</a></td>
+			<td><a href="https://github.com/{{ pr_full_name }}/pull/{{ pr_number }}/commits/{{ pr_sha1 }}">{{ pr_sha1|truncate(12) }}</a></td>
+			<td><a href="https://github.com/{{ pr_full_name }}/tree/{{ commiter_branch }}">{{ commiter_branch }}</a></td>
+			<td>{{ date }}</td>
+			<td>{{ run_time }}</td>
+			<td>{{ status }}</td>
+			<td><a href="{{ url_for('stop_page', pr_id=pr_id, pr_sha1=pr_sha1) }}">[stop]</a> |
+				<a href="{{ url_for('restart_page', pr_id=pr_id, pr_sha1=pr_sha1) }}">[restart]</a>
+			</td>
+		</tr>
+	</table>
+	{## Outer loop is the jobs that was running ##}
+	{% for key, value in logs.items() %}
+	{% if value %}
+	<ul>
+			<li>{{ key|upper|replace("_", " ") }}</li>
+			<li>
+				<ul>
+				{% for inner_key, inner_value in value.items() %}
+				{% if inner_value %}
+
+				<li><a href="#{{ key }}-{{ inner_key }}" class="info">{{ inner_key|upper|replace("_", " ") }}</a>
+					( <a href="#end-{{ key }}-{{ inner_key }}" class="info">end</a> )</li>
+				{% endif %}
+				{% endfor %}
+				</ul>
+			</li>
+	</ul>
+	{% endif %}
+	{% endfor %}
+	{% for key, value in logs.items() %}
+
+	{% if value %}
+		{% for inner_key, inner_value in value.items() %}
+		{% if inner_value %}
+		<p class="info" id="{{ key }}-{{ inner_key }}">{{ key|upper|replace("_", " ") }} - {{ inner_key|upper|replace("_", " ") }} (<a href="#top">top</a>)</p>
+<pre class="logtable">
+{{ inner_value }}
+</pre>
+<p class="info" id="end-{{ key }}-{{ inner_key }}"></p>
+		{% endif %}
+		{% endfor %}
+{% endif %}
+{% endfor %}
+</body>
+</html>

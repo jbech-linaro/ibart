@@ -1,0 +1,35 @@
+pre_clone:
+        - cmd: export MYWORKSPACE=/tmp/my-working-dir
+        - cmd: rm -rf /tmp/my-working-dir
+        - cmd: mkdir -p $MYWORKSPACE
+
+clone:
+        - cmd: cd $MYWORKSPACE
+          # Clone the git corresponding to the pull request
+        - cmd: git clone https://github.com/$PR_FULL_NAME.git
+          timeout: 20
+        - cmd: wget https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/plain/scripts/const_structs.checkpatch
+          timeout: 10
+        - cmd: wget https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/plain/scripts/spelling.txt
+          timeout: 10
+        - cmd: wget https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/plain/scripts/checkpatch.pl
+          timeout: 10
+        - cmd: chmod 711 checkpatch.pl
+
+post_clone:
+        - cmd: cd $PR_NAME
+          # Add a new remote pointing to the pull request submitters tree
+        - cmd: git remote add submitter $PR_CLONE_URL
+          # Update to see the actual changes
+        - cmd: git remote update
+          timeout: 20
+          # Checkout the commit corresponding to the pull request
+        - cmd: git checkout -t submitter/$PR_BRANCH
+
+build:
+        - cmd: cd $MYWORKSPACE/$PR_NAME
+        # This command relies that the submitter based his work on the 'master'
+        # branch. There are probably better ways to do this.
+        - cmd: git format-patch submitter/master..$PR_BRANCH
+        - cmd: ../checkpatch.pl --no-tree *.patch
+          timout: 15

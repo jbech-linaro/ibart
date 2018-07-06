@@ -1,0 +1,84 @@
+pre_clone:
+        - cmd: export MYWORKSPACE=/home/optee/devel/hikey
+        - cmd: rm -rf /home/optee/devel/hikey
+          timeout: 15
+        - cmd: mkdir -p $MYWORKSPACE
+
+clone:
+        - cmd: cd $MYWORKSPACE
+          # Clone the git corresponding to the pull request
+        - cmd: repo init -u https://github.com/OP-TEE/manifest.git -m hikey.xml --reference /home/optee/devel/reference
+          timeout: 15
+        - cmd: repo sync -j4
+          timeout: 60
+
+post_clone:
+        - cmd: cd $PR_NAME
+          # Add a new remote pointing to the pull request submitters tree
+        - cmd: git remote add submitter $PR_CLONE_URL
+          # Update to see the actual changes
+        - cmd: git remote update
+          timeout: 20
+          # Checkout the commit corresponding to the pull request
+        - cmd: git checkout $PR_SHA1
+
+pre_build:
+        # I'm using a locally downloaded toolchain instead of downloading it
+        # every time.
+        - cmd: cd $MYWORKSPACE
+        - cmd: ln -s /home/optee/devel/reference/toolchains .
+        - cmd: cd $MYWORKSPACE/build
+          #- cmd: make toolchains -j2
+          # Also save/use the downloaded buildroot files
+        - cmd: export BR2_DL_DIR=/tmp/buildroot_dl
+
+build:
+        - cmd: make -j8
+          timeout: 1500
+
+pre_flash:
+        - cmd: export HIKEY_TOOL=/home/optee/devel/hikey_auto_boot/tools/hidusb-relay-cmd/hikey6220_flash.py
+
+flash:
+        - cmd: $HIKEY_TOOL --recovery
+        - cmd: sleep 2
+        - cmd: make CFG_DRAM_SIZE_GB=1 CFG_FLASH_SIZE=4 recovery
+          exp: 'Press enter to continue'
+          timeout: 15
+        - cmd: "" # 'Enter' sent from previous 'exp'
+          exp: '1. Connect USB OTG cable, the micro USB cable \(press enter\)'
+        - cmd: "" # 'Enter' sent from previous 'exp'
+          exp: '2. Connect HiKey to power up \(press enter\)'
+        - cmd: "" # 'Enter' sent from previous 'exp'
+          exp: 'fastboot flash loader'
+          timeout: 10
+        - cmd: "" # Send one more "enter", which OP-TEE make expects
+          exp: "writing 'boot'..."
+          timeout: 30
+        - exp: '\r\nIBART'
+          timeout: 15
+        - cmd: $HIKEY_TOOL --off
+
+pre_boot:
+        - cmd: export UART=/dev/serial/by-id/usb-FTDI_FT230X_96Boards_Console_DAYWVTWZ-if00-port0
+
+boot:
+        - cmd: $HIKEY_TOOL --boot
+        - cmd: picocom -b 115200 $UART
+          exp: 'buildroot login:'
+          timeout: 30
+        - cmd: root
+          exp: '\r\n#'
+
+pre_test:
+        # Sleep 2 seconds to let the OS close the previous picocom connection
+        - cmd: sleep 2
+
+test:
+        - cmd: picocom -b 115200 $UART
+          exp: 'Terminal ready'
+        # Set a unique prompt to not interfere with output from the test cases
+        - cmd: 'export PS1="IBART $ "'
+          exp: '\r\nIBART'
+        - cmd: xtest
+          timeout: 600

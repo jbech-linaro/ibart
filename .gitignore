@@ -1,0 +1,8 @@
+*.log
+*.pyc
+*.swp
+configs/*
+database/*
+docs/_build
+last_blob.json
+logs/*

@@ -1,0 +1,18 @@
+pre_clone:
+        - cmd: export MYWORKSPACE=/tmp/my-working-dir
+        - cmd: rm -rf /tmp/my-working-dir
+        - cmd: mkdir -p $MYWORKSPACE
+
+clone:
+        - cmd: cd $MYWORKSPACE
+        - cmd: git clone https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+          timeout: 3600
+
+pre_build:
+        - cmd: cd $MYWORKSPACE/linux
+        - cmd: make defconfig
+          timeout: 20
+
+build:
+        - cmd: make -j8 CC="/usr/bin/ccache gcc"
+          timeout: 1200

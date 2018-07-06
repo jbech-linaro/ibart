@@ -1,0 +1,35 @@
+pre_clone:
+        - cmd: export MYWORKSPACE=/tmp/test
+        - cmd: rm -rf /tmp/test
+        - cmd: mkdir -p $MYWORKSPACE
+
+clone:
+        - cmd: cd $MYWORKSPACE
+          # Clone the git corresponding to the pull request
+        - cmd: git clone https://github.com/$PR_FULL_NAME.git
+          timeout: 20
+
+post_clone:
+        - cmd: cd $PR_NAME
+          # Add a new remote pointing to the pull request submitters tree
+        - cmd: git remote add submitter $PR_CLONE_URL
+          # Update to see the actual changes
+        - cmd: git remote update
+          timeout: 20
+          # Checkout the commit corresponding to the pull request
+        - cmd: git checkout $PR_SHA1
+
+pre_build:
+        # The sample code here corresponds to how you are compiling
+        #   https://github.com/OP-TEE/optee_client
+        - cmd: mkdir -p $MYWORKSPACE/$PR_NAME/build
+        - cmd: cd $MYWORKSPACE/$PR_NAME/build
+        - cmd: export PATH=:/home/optee/devel/reference/toolchains/aarch32/bin:$PATH
+        - cmd: cmake -DCMAKE_C_COMPILER=arm-linux-gnueabihf-gcc -DCMAKE_INSTALL_PREFIX=/tmp/optee_client/install ..
+
+build:
+        - cmd: make
+          timeout: 60
+
+post_build:
+        - cmd: make install
