@@ -63,9 +63,9 @@ def add_build_record(payload):
     pr_number = github.pr_number(payload)
     pr_full_name = github.pr_full_name(payload)
     sql = ("INSERT INTO job (pr_id, pr_number, full_name, sha1, date, payload)"
-           " VALUES('{}','{}','{}', '{}', datetime('now'), '{}')".format(
-            pr_id, pr_number, pr_full_name, pr_sha1, json.dumps(payload)))
-    cur.execute(sql)
+           " VALUES(?, ?, ?, ?, datetime('now'), ?)")
+    data = (pr_id, pr_number, pr_full_name, pr_sha1, json.dumps(payload))
+    cur.execute(sql, data)
     con.commit()
     con.close()
 
