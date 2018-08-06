@@ -89,11 +89,16 @@ def get_payload_from_pr_id(pr_id, pr_sha1):
            "sha1 = '{}'".format(pr_id, pr_sha1))
     cur.execute(sql)
     r = cur.fetchall()
+    con.close()
+
+    if r is None or len(r) == 0:
+        log.error("Record not found in the database")
+        return None
+
     if len(r) > 1:
         log.error("Found duplicated pr_id/pr_sha1 in the database")
-        return -1
-    con.commit()
-    con.close()
+        return None
+
     return json.loads("".join(r[0]))
 
 
@@ -170,9 +175,16 @@ def get_job_info(pr_id, pr_sha1):
                pr_id, pr_sha1))
     cur.execute(sql)
     r = cur.fetchall()
+    con.close()
+
+    if r is None or len(r) == 0:
+        log.error("Record not found in the database")
+        # This should normally not happen, but in case it still does, just
+        # return a dummy so that ibart continues to execute as expected.
+        return ["n/a", pr_id, pr_sha1, "n/a", "n/a", "n/a", "n/a", "n/a"]
+
     if len(r) > 1:
         log.error("Found duplicated pr_id/pr_sha1 in the database")
-        return -1
-    con.commit()
-    con.close()
+        return None
+
     return r[0]

@@ -99,7 +99,10 @@ def show_log(owner, project, pr_number, pr_id, pr_sha1):
     logs = ibl.get_logs(pr_full_name, pr_number, pr_id, pr_sha1)
     sql_data = db.get_job_info(pr_id, pr_sha1)
     payload = db.get_payload_from_pr_id(pr_id, pr_sha1)
-    commiter_branch = github.pr_branch(payload)
+    if payload is not None:
+        commiter_branch = github.pr_branch(payload)
+    else:
+        commiter_branch = "n/a"
     return render_template('job.html', sd=sql_data, logs=logs,
                            commiter_branch=commiter_branch)
 
