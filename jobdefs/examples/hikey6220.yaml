@@ -82,3 +82,6 @@ test:
           exp: '\r\nIBART'
         - cmd: xtest
           timeout: 600
+
+post_test:
+        - cmd: $HIKEY_TOOL --off
