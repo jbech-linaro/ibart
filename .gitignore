@@ -6,3 +6,4 @@ database/*
 docs/_build
 last_blob.json
 logs/*
+setup
