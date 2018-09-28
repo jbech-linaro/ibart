@@ -1,0 +1,62 @@
+pre_clone:
+        - cmd: export MYWORKSPACE=/media/jbech/SSHD_LINUX/devel/optee_projects/qemu-ibart
+          timeout: 15
+
+post_build:
+        - cmd: export BINARIES_PATH=$MYWORKSPACE/out/bin
+        - cmd: ln -sf $MYWORKSPACE/out-br/images/rootfs.cpio.gz $BINARIES_PATH
+
+pre_boot:
+        - cmd: export QEMU=$MYWORKSPACE/qemu/arm-softmmu/qemu-system-arm
+        - cmd: export QEMU_SMP=1
+        - cmd: export BL1_BIN=$BINARIES_PATH/bl1.bin
+        - cmd: cd $BINARIES_PATH
+
+# Note that booting up QEMU here is a bit special, i.e., we spawn QEMU in a new
+# bash instance. That means that everything we do here has to be done in the
+# same yaml-section. If we would have tried to put things in different
+# sections, then things would fail (since QEMU will be killed by the end of a
+# section).
+test:
+        - cmd: '$QEMU -nographic -monitor none -machine virt -machine secure=on -cpu cortex-a15 -smp $QEMU_SMP -d unimp -semihosting-config enable,target=native -m 1057 -serial stdio -serial file:serial1.log -bios $BL1_BIN'
+          exp: 'buildroot login:'
+          timeout: 20
+        - cmd: root
+          exp: '\r\n#'
+          # Set a unique prompt
+        - cmd: 'export PS1="IBART $ "'
+          exp: '\r\nIBART'
+          # This check and the return value check below is also a special case
+          # for testing QEMU (if we get rid of empty lines we could probably
+          # get rid of this).
+
+        - cmd: xtest --sdp-basic
+          exp: 'NS invokes SDP TA'
+        - exp: '\r\nTest passed'
+          timeout: 20
+
+        - exp: 'SDP TA invokes SDP TA'
+        - exp: '\r\nTest passed'
+          timeout: 20
+
+        - exp: 'SDP TA invokes SDP pTA'
+        - exp: '\r\nTest passed'
+          timeout: 20
+
+        - exp: 'NS invokes SDP pTA'
+        - exp: '\r\nTest passed'
+          timeout: 20
+
+        - exp: '\r\nIBART'
+
+        - cmd: xtest --aes-perf
+          exp: '\r\nmin='
+          timeout: 30
+        - cmd: echo $?
+          exp: '\r\n0'
+
+        - cmd: xtest --sha-perf
+          exp: '\r\nmin='
+          timeout: 30
+        - cmd: echo $?
+          exp: '\r\n0'
