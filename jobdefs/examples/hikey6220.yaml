@@ -33,7 +33,7 @@ pre_build:
         - cmd: export BR2_DL_DIR=/tmp/buildroot_dl
 
 build:
-        - cmd: make -j8
+        - cmd: make -j8 CFG_RPMB_WRITE_KEY=y CFG_RPMB_FS=y CFG_SECURE_DATA_PATH=y CFG_WITH_PAGER=y CFG_TEE_CORE_LOG_LEVEL=1 CFG_LOCKDEP=y
           timeout: 1500
 
 pre_flash:
@@ -41,6 +41,7 @@ pre_flash:
 
 flash:
         - cmd: $HIKEY_TOOL --recovery
+          timeout: 10
         - cmd: sleep 2
         - cmd: make CFG_DRAM_SIZE_GB=1 CFG_FLASH_SIZE=4 recovery
           exp: 'Press enter to continue'
@@ -81,7 +82,74 @@ test:
         - cmd: 'export PS1="IBART $ "'
           exp: '\r\nIBART'
         - cmd: xtest
-          timeout: 600
+          timeout: 1200
+
+        - cmd: hello_world
+          exp: '\r\nIBART'
+          timeout: 10
+        - cmd: echo $?
+          exp: '\r\n0'
+
+        - cmd: hotp
+          exp: '\r\nIBART'
+          timeout: 10
+        - cmd: echo $?
+          exp: '\r\n0'
+
+        - cmd: random
+          exp: '\r\nIBART'
+          timeout: 10
+        - cmd: echo $?
+          exp: '\r\n0'
+
+        - cmd: aes
+          exp: '\r\nIBART'
+          timeout: 10
+        - cmd: echo $?
+          exp: '\r\n0'
+
+        - cmd: secure_storage
+          exp: '\r\nIBART'
+          timeout: 10
+        - cmd: echo $?
+          exp: '\r\n0'
+
+        - cmd: acipher 1024 foobar
+          exp: '\r\nEncrypted buffer'
+          timeout: 25
+        - cmd: echo $?
+          exp: '\r\n0'
+
+        - cmd: xtest --sdp-basic
+          exp: 'NS invokes SDP TA'
+        - exp: '\r\nTest passed'
+          timeout: 20
+
+        - exp: 'SDP TA invokes SDP TA'
+        - exp: '\r\nTest passed'
+          timeout: 20
+
+        - exp: 'SDP TA invokes SDP pTA'
+        - exp: '\r\nTest passed'
+          timeout: 20
+
+        - exp: 'NS invokes SDP pTA'
+        - exp: '\r\nTest passed'
+          timeout: 20
+
+        - exp: '\r\nIBART'
+
+        - cmd: xtest --aes-perf
+          exp: '\r\nmin='
+          timeout: 30
+        - cmd: echo $?
+          exp: '\r\n0'
+
+        - cmd: xtest --sha-perf
+          exp: '\r\nmin='
+          timeout: 30
+        - cmd: echo $?
+          exp: '\r\n0'
 
 post_test:
         - cmd: $HIKEY_TOOL --off
