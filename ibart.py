@@ -101,10 +101,13 @@ def show_log(owner, project, pr_number, pr_id, pr_sha1):
     payload = db.get_payload_from_pr_id(pr_id, pr_sha1)
     if payload is not None:
         commiter_branch = github.pr_branch(payload)
+        commiter_full_name = github.pr_full_name(payload)
     else:
         commiter_branch = "n/a"
+        commiter_full_name = commiter_branch
     return render_template('job.html', sd=sql_data, logs=logs,
-                           commiter_branch=commiter_branch)
+                           commiter_branch=commiter_branch,
+                           commiter_full_name=commiter_full_name)
 
 
 @app.route('/payload', methods=['POST'])

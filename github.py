@@ -30,7 +30,7 @@ def pr_name(payload):
 
 def pr_full_name(payload):
     """Returns the full name (ex. OP-TEE/optee_os) of the Git project."""
-    return payload['repository']['full_name']
+    return payload['pull_request']['head']['repo']['full_name']
 
 
 def pr_statuses_url(payload):
