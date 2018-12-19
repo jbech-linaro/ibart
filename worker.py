@@ -157,16 +157,24 @@ def terminate_child(child):
     child.close()
 
 
-def check_for_remote_definition(payload):
-    url = "{}/{}/{}/{}".format("https://raw.githubusercontent.com",
-                               github.pr_full_name_committer(payload),
-                               github.pr_branch(payload),
-                               ".ibart.yaml")
-    print(url)
+def check_for_remote_definition(payload, use_target):
+    url = "n/a"
+    if use_target:
+        url = "{}/{}/{}/{}".format("https://raw.githubusercontent.com",
+                                   github.pr_full_name(payload),
+                                   github.pr_default_branch(payload),
+                                   ".ibart.yaml")
+    else:
+        url = "{}/{}/{}/{}".format("https://raw.githubusercontent.com",
+                                   github.pr_full_name_committer(payload),
+                                   github.pr_branch(payload),
+                                   ".ibart.yaml")
+
+    log.debug("Remote definition URL: {}".format(url))
 
     r = requests.get(url)
 
-    if r.status_code == 404:
+    if r.status_code == 404 or url == "n/a":
         return False
 
     with open('remote.yaml', 'wb') as f:
@@ -202,14 +210,20 @@ def get_job_definitions(payload):
     # absolutely necessary to have some kind of check like this, otherwise
     # anyone who submits a pull request can run any command at a server!
     if github.pr_author_association(payload) == "OWNER":
-        if check_for_remote_definition(payload):
+        if check_for_remote_definition(payload, False):
+            definitions.append("remote.yaml")
+            # Read out from the remote config whether we should run local
+            # definitions or not.
+            add_local_definitions = run_local_definitions("remote.yaml")
+    # Secondly we try to get it from the upstream tree.
+    elif check_for_remote_definition(payload, True):
             definitions.append("remote.yaml")
             # Read out from the remote config whether we should run local
             # definitions or not.
             add_local_definitions = run_local_definitions("remote.yaml")
 
     if add_local_definitions:
-        print("Adding local definitions")
+        log.debug("Add local definitions")
         definitions = definitions + sorted([jd for jd in glob.glob("jobdefs/*.yaml")])
 
     return definitions
@@ -236,7 +250,7 @@ regularly for the stopped() condition."""
         payload = self.job.payload
 
         jobdefs = get_job_definitions(payload)
-        print(jobdefs)
+        log.debug("Job definitions in use: {}".format(jobdefs))
 
         # FIXME: If jobdefs for some reason is None, we should return instead
         # getting an exception as right now.

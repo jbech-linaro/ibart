@@ -52,6 +52,10 @@ def pr_author_association(payload):
     return payload['pull_request']['author_association']
 
 
+def pr_default_branch(payload):
+    return payload['pull_request']['base']['repo']['default_branch']
+
+
 def update_state(payload, state, description):
     if payload is None or state is None or description is None:
         log.error("Missing one or several parameters")
