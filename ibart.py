@@ -101,7 +101,7 @@ def show_log(owner, project, pr_number, pr_id, pr_sha1):
     payload = db.get_payload_from_pr_id(pr_id, pr_sha1)
     if payload is not None:
         commiter_branch = github.pr_branch(payload)
-        commiter_full_name = github.pr_full_name(payload)
+        commiter_full_name = github.pr_full_name_committer(payload)
     else:
         commiter_branch = "n/a"
         commiter_full_name = commiter_branch
