@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import base64
 import glob
 import json
 import logging as log
@@ -158,27 +159,38 @@ def terminate_child(child):
 
 
 def check_for_remote_definition(payload, use_target):
+    # https://developer.github.com/v3/repos/contents/#get-contents
+    ref_param = None
     url = "n/a"
+    owner_repo = ""
+
+    api_url = "https://api.github.com/repos"
+    target_file = ".ibart.yaml"
+
     if use_target:
-        url = "{}/{}/{}/{}".format("https://raw.githubusercontent.com",
-                                   github.pr_full_name(payload),
-                                   github.pr_default_branch(payload),
-                                   ".ibart.yaml")
+        # This doesn't need ref_param since it's default to the master/default.
+        owner_repo = github.pr_full_name(payload)
     else:
-        url = "{}/{}/{}/{}".format("https://raw.githubusercontent.com",
-                                   github.pr_full_name_committer(payload),
-                                   github.pr_branch(payload),
-                                   ".ibart.yaml")
+        ref_param = {'ref': github.pr_branch(payload)}
+        owner_repo = github.pr_full_name_committer(payload)
 
-    log.debug("Remote definition URL: {}".format(url))
+    url = "{}/{}/contents/{}".format(api_url, owner_repo, target_file)
 
-    r = requests.get(url)
+    r = requests.get(url, params=ref_param)
+    log.debug("Remote definition URL: {}".format(r.url))
 
     if r.status_code == 404 or url == "n/a":
         return False
 
-    with open('remote.yaml', 'wb') as f:
-        f.write(r.content)
+    # Save the response as a json blob and take the actual content which is
+    # base64 encoded.
+    b64content = r.json()
+
+    # Base64 decode to get a reglar file instead.
+    content = base64.b64decode(b64content['content']).decode('utf-8')
+
+    with open('remote.yaml', 'w') as f:
+        f.write(content)
 
     return True
 
@@ -208,7 +220,7 @@ def get_job_definitions(payload):
     # To reduce likelihood on getting into trouble with security issues, limit
     # the users who can use remote yaml to owners of the project. It is
     # absolutely necessary to have some kind of check like this, otherwise
-    # anyone who submits a pull request can run any command at a server!
+    # anyone who submits a pull request can run any command at the server!
     if github.pr_author_association(payload) == "OWNER":
         if check_for_remote_definition(payload, False):
             definitions.append("remote.yaml")
@@ -231,7 +243,7 @@ def get_job_definitions(payload):
 
 class JobThread(threading.Thread):
     """Thread class with a stop() method. The thread itself has to check
-regularly for the stopped() condition."""
+       regularly for the stopped() condition."""
 
     def __init__(self, job):
         super(JobThread, self).__init__()
