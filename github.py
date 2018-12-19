@@ -27,9 +27,11 @@ def pr_name(payload):
     """Returns the name (ex. optee_os) of the Git project."""
     return payload['repository']['name']
 
+
 def pr_full_name_committer(payload):
     """Returns the full name (ex. <a-user>/optee_os) of the Git project."""
     return payload['pull_request']['head']['repo']['full_name']
+
 
 def pr_full_name(payload):
     """Returns the full name (ex. OP-TEE/optee_os) of the Git project."""
@@ -48,6 +50,7 @@ def pr_branch(payload):
 
 def pr_author_association(payload):
     return payload['pull_request']['author_association']
+
 
 def update_state(payload, state, description):
     if payload is None or state is None or description is None:

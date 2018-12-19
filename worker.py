@@ -159,9 +159,9 @@ def terminate_child(child):
 
 def check_for_remote_definition(payload):
     url = "{}/{}/{}/{}".format("https://raw.githubusercontent.com",
-            github.pr_full_name_committer(payload),
-            github.pr_branch(payload),
-            "ibart.yaml")
+                               github.pr_full_name_committer(payload),
+                               github.pr_branch(payload),
+                               ".ibart.yaml")
     print(url)
 
     r = requests.get(url)
@@ -175,8 +175,27 @@ def check_for_remote_definition(payload):
     return True
 
 
+def run_local_definitions(yaml_file):
+    with open(yaml_file, 'r') as yml:
+        yml_config = yaml.load(yml)
+
+    try:
+        yml_iter = yml_config['run_local_definitions']
+    except KeyError:
+        return True
+
+    return yml_iter
+
+
 def get_job_definitions(payload):
-    definitions = sorted([jd for jd in glob.glob("jobdefs/*.yaml")])
+    definitions = []
+
+    # By default we run local definitions
+    add_local_definitions = True
+
+    # Remove eventually existing old files
+    if os.path.isfile("remote.yaml"):
+        os.remove("remote.yaml")
 
     # To reduce likelihood on getting into trouble with security issues, limit
     # the users who can use remote yaml to owners of the project. It is
@@ -184,7 +203,14 @@ def get_job_definitions(payload):
     # anyone who submits a pull request can run any command at a server!
     if github.pr_author_association(payload) == "OWNER":
         if check_for_remote_definition(payload):
-            definitions.insert(0, "remote.yaml")
+            definitions.append("remote.yaml")
+            # Read out from the remote config whether we should run local
+            # definitions or not.
+            add_local_definitions = run_local_definitions("remote.yaml")
+
+    if add_local_definitions:
+        print("Adding local definitions")
+        definitions = definitions + sorted([jd for jd in glob.glob("jobdefs/*.yaml")])
 
     return definitions
 
@@ -211,6 +237,9 @@ regularly for the stopped() condition."""
 
         jobdefs = get_job_definitions(payload)
         print(jobdefs)
+
+        # FIXME: If jobdefs for some reason is None, we should return instead
+        # getting an exception as right now.
 
         # To prevent old logs from showing up on the web-page, start by
         # removing all of them.
