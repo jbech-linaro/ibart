@@ -104,7 +104,7 @@ def show_log(owner, project, pr_number, pr_id, pr_sha1):
         commiter_full_name = github.pr_full_name_committer(payload)
     else:
         commiter_branch = "n/a"
-        commiter_full_name = commiter_branch
+        commiter_full_name = "n/a"
     return render_template('job.html', sd=sql_data, logs=logs,
                            commiter_branch=commiter_branch,
                            commiter_full_name=commiter_full_name)
