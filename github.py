@@ -42,9 +42,12 @@ def pr_statuses_url(payload):
 
 
 def pr_branch(payload):
-    """Returns the name of the commiers branch."""
+    """Returns the name of the committers branch."""
     return payload['pull_request']['head']['ref']
 
+
+def pr_author_association(payload):
+    return payload['pull_request']['author_association']
 
 def update_state(payload, state, description):
     if payload is None or state is None or description is None:

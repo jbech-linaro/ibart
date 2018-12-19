@@ -4,6 +4,7 @@ import json
 import logging as log
 import os
 import pexpect
+import requests
 import sys
 import threading
 import time
@@ -156,8 +157,36 @@ def terminate_child(child):
     child.close()
 
 
-def get_job_definitions():
-    return sorted([jd for jd in glob.glob("jobdefs/*.yaml")])
+def check_for_remote_definition(payload):
+    url = "{}/{}/{}/{}".format("https://raw.githubusercontent.com",
+            github.pr_full_name_committer(payload),
+            github.pr_branch(payload),
+            "ibart.yaml")
+    print(url)
+
+    r = requests.get(url)
+
+    if r.status_code == 404:
+        return False
+
+    with open('remote.yaml', 'wb') as f:
+        f.write(r.content)
+
+    return True
+
+
+def get_job_definitions(payload):
+    definitions = sorted([jd for jd in glob.glob("jobdefs/*.yaml")])
+
+    # To reduce likelihood on getting into trouble with security issues, limit
+    # the users who can use remote yaml to owners of the project. It is
+    # absolutely necessary to have some kind of check like this, otherwise
+    # anyone who submits a pull request can run any command at a server!
+    if github.pr_author_association(payload) == "OWNER":
+        if check_for_remote_definition(payload):
+            definitions.insert(0, "remote.yaml")
+
+    return definitions
 
 
 class JobThread(threading.Thread):
@@ -177,10 +206,11 @@ regularly for the stopped() condition."""
         return self._stop_event.is_set()
 
     def start_job(self):
-        jobdefs = get_job_definitions()
-
         # Just local to save some typing further down
         payload = self.job.payload
+
+        jobdefs = get_job_definitions(payload)
+        print(jobdefs)
 
         # To prevent old logs from showing up on the web-page, start by
         # removing all of them.
