@@ -33,17 +33,17 @@ Within each section one states commands, expected output and the timeout. Timeou
     pre_clone:
         - cmd: mkdir -p /opt/myworking-dir
         - cmd: cd /opt/myworking-dir
-        
+
     clone:
         - cmd: git clone https://github.com/torvalds/linux.git
           timeout: 600
-    
+
     build:
         - cmd: make ARCH=arm defconfig
         - cmd: make -j8
           timeout: 600
-          
-This simple test would create a working directory, clone Linux kernel with a 600 second timeout, build it for Arm (again 600 seconds timeout). Note that one can use both this 
+
+This simple test would create a working directory, clone Linux kernel with a 600 second timeout, build it for Arm (again 600 seconds timeout). Note that one can use both this
 
 .. code-block:: yaml
 
@@ -52,7 +52,7 @@ This simple test would create a working directory, clone Linux kernel with a 600
         - cmd: echo $?
           exp: '0'
 
-as well as this syntax (pay attention to the added ``-`` at ``exp``. 
+as well as this syntax (pay attention to the added ``-`` at ``exp``.
 
 .. code-block:: yaml
 
@@ -61,6 +61,23 @@ as well as this syntax (pay attention to the added ``-`` at ``exp``.
         - exp: '0'
 
 From user point of view there is no difference. But under the hood, the later is done in two loops within the script and the first one is done in a single loop.
+
+List of commands
+~~~~~~~~~~~~~~~~
+There are a few of the pull request variables automatically exported to the
+"environment" which can be used directly in the script, they are:
+
++---------------------------+------------------------------------------------------+---------------------------------------+
+| Variable                  | Meaning                                              | Example                               |
++---------------------------+------------------------------------------------------+---------------------------------------+
+| ``cmd``                   | The ``shell`` (bash) command to run at the server    | cmd: make                             |
++---------------------------+------------------------------------------------------+---------------------------------------+
+| ``timeout``               | The amount of time (in sec) before command timeout   | timeout: 25                           |
++---------------------------+------------------------------------------------------+---------------------------------------+
+| ``exp``                   | The expected value as response to last ``cmd``       | exp: "File successfully flashed"      |
++---------------------------+------------------------------------------------------+---------------------------------------+
+| ``run_local_definitions`` | True = Run <ibart>/jobdefs/\* False = only remote    | run_local_definitions: False          |
++---------------------------+------------------------------------------------------+---------------------------------------+
 
 Exported variables
 ------------------
@@ -72,8 +89,6 @@ Pull request variables
 ~~~~~~~~~~~~~~~~~~~~~~
 There are a few of the pull request variables automatically exported to the
 "environment" which can be used directly in the script, they are:
-
-.. code-block:: bash
 
 +------------------+------------------------------------------------------+---------------------------------------+
 | Variable         | Meaning                                              | Example                               |
