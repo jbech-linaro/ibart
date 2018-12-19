@@ -27,9 +27,11 @@ def pr_name(payload):
     """Returns the name (ex. optee_os) of the Git project."""
     return payload['repository']['name']
 
+
 def pr_full_name_committer(payload):
     """Returns the full name (ex. <a-user>/optee_os) of the Git project."""
     return payload['pull_request']['head']['repo']['full_name']
+
 
 def pr_full_name(payload):
     """Returns the full name (ex. OP-TEE/optee_os) of the Git project."""
@@ -42,8 +44,16 @@ def pr_statuses_url(payload):
 
 
 def pr_branch(payload):
-    """Returns the name of the commiers branch."""
+    """Returns the name of the committers branch."""
     return payload['pull_request']['head']['ref']
+
+
+def pr_author_association(payload):
+    return payload['pull_request']['author_association']
+
+
+def pr_default_branch(payload):
+    return payload['pull_request']['base']['repo']['default_branch']
 
 
 def update_state(payload, state, description):

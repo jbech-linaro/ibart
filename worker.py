@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
+import base64
 import glob
 import json
 import logging as log
 import os
 import pexpect
+import requests
 import sys
 import threading
 import time
@@ -156,13 +158,92 @@ def terminate_child(child):
     child.close()
 
 
-def get_job_definitions():
-    return sorted([jd for jd in glob.glob("jobdefs/*.yaml")])
+def check_for_remote_definition(payload, use_target):
+    # https://developer.github.com/v3/repos/contents/#get-contents
+    ref_param = None
+    url = "n/a"
+    owner_repo = ""
+
+    api_url = "https://api.github.com/repos"
+    target_file = ".ibart.yaml"
+
+    if use_target:
+        # This doesn't need ref_param since it's default to the master/default.
+        owner_repo = github.pr_full_name(payload)
+    else:
+        ref_param = {'ref': github.pr_branch(payload)}
+        owner_repo = github.pr_full_name_committer(payload)
+
+    url = "{}/{}/contents/{}".format(api_url, owner_repo, target_file)
+
+    r = requests.get(url, params=ref_param)
+    log.debug("Remote definition URL: {}".format(r.url))
+
+    if r.status_code == 404 or url == "n/a":
+        return False
+
+    # Save the response as a json blob and take the actual content which is
+    # base64 encoded.
+    b64content = r.json()
+
+    # Base64 decode to get a reglar file instead.
+    content = base64.b64decode(b64content['content']).decode('utf-8')
+
+    with open('remote.yaml', 'w') as f:
+        f.write(content)
+
+    return True
+
+
+def run_local_definitions(yaml_file):
+    with open(yaml_file, 'r') as yml:
+        yml_config = yaml.load(yml)
+
+    try:
+        yml_iter = yml_config['run_local_definitions']
+    except KeyError:
+        return True
+
+    return yml_iter
+
+
+def get_job_definitions(payload):
+    definitions = []
+
+    # By default we run local definitions
+    add_local_definitions = True
+
+    # Remove eventually existing old files
+    if os.path.isfile("remote.yaml"):
+        os.remove("remote.yaml")
+
+    # To reduce likelihood on getting into trouble with security issues, limit
+    # the users who can use remote yaml to owners of the project. It is
+    # absolutely necessary to have some kind of check like this, otherwise
+    # anyone who submits a pull request can run any command at the server!
+    if github.pr_author_association(payload) == "OWNER":
+        if check_for_remote_definition(payload, False):
+            definitions.append("remote.yaml")
+            # Read out from the remote config whether we should run local
+            # definitions or not.
+            add_local_definitions = run_local_definitions("remote.yaml")
+    # Secondly we try to get it from the upstream tree.
+    elif check_for_remote_definition(payload, True):
+            definitions.append("remote.yaml")
+            # Read out from the remote config whether we should run local
+            # definitions or not.
+            add_local_definitions = run_local_definitions("remote.yaml")
+
+    if add_local_definitions:
+        log.debug("Add local definitions")
+        definitions = definitions + sorted([jd for jd in glob.glob("jobdefs/*.yaml")])
+
+    return definitions
 
 
 class JobThread(threading.Thread):
     """Thread class with a stop() method. The thread itself has to check
-regularly for the stopped() condition."""
+       regularly for the stopped() condition."""
 
     def __init__(self, job):
         super(JobThread, self).__init__()
@@ -177,10 +258,14 @@ regularly for the stopped() condition."""
         return self._stop_event.is_set()
 
     def start_job(self):
-        jobdefs = get_job_definitions()
-
         # Just local to save some typing further down
         payload = self.job.payload
+
+        jobdefs = get_job_definitions(payload)
+        log.debug("Job definitions in use: {}".format(jobdefs))
+
+        # FIXME: If jobdefs for some reason is None, we should return instead
+        # getting an exception as right now.
 
         # To prevent old logs from showing up on the web-page, start by
         # removing all of them.
