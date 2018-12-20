@@ -160,6 +160,42 @@ def get_job_definitions():
     return sorted([jd for jd in glob.glob("jobdefs/*.yaml")])
 
 
+def run_teardown(yml_config):
+    rcfile = '--rcfile {}/.bashrc'.format(os.getcwd())
+    child = pexpect.spawnu('/bin/bash', ['--rcfile', rcfile],
+                           encoding='utf-8')
+
+    try:
+        yml_iter = yml_config['teardown']
+    except KeyError:
+        # Probably no teardown in the config
+        return
+
+    # Stripped down version of do_pexpect, which only errors on timeout.
+    for i in yml_iter:
+        c, exp, cr, to = get_yaml_cmd(i)
+
+        child.sendline(c)
+
+        e = []
+        if exp is not None:
+            e.append(exp)
+        e.append(pexpect.TIMEOUT)
+        r = child.expect(e, to)
+        error_pos = 1
+        log.debug("Got: {} (value >= {} is considered an error)".format(
+            r, error_pos))
+        if r >= error_pos:
+            log.error("Failed doing teardown, cmd: {}".format(c))
+
+    child.close()
+
+
+def terminate(child, yml_config):
+    terminate_child(child)
+    run_teardown(yml_config)
+
+
 class JobThread(threading.Thread):
     """Thread class with a stop() method. The thread itself has to check
 regularly for the stopped() condition."""
@@ -220,7 +256,7 @@ regularly for the stopped() condition."""
                         c, e, cr, to = get_yaml_cmd(i)
 
                         if not do_pexpect(child, c, e, cr, to):
-                            terminate_child(child)
+                            terminate(child, yml_config)
                             log.error("job type: {} failed!".format(logtype))
                             ibl.store_logfile(payload, current_log_file,
                                               full_log_file)
@@ -229,7 +265,7 @@ regularly for the stopped() condition."""
                             return status.FAIL
 
                         if self.stopped():
-                            terminate_child(child)
+                            terminate(child, yml_config)
                             log.debug("job type: {} cancelled!".format(
                                       logtype))
                             ibl.store_logfile(payload, current_log_file,
@@ -239,7 +275,7 @@ regularly for the stopped() condition."""
                                                 "".format(logtype))
                             return status.CANCEL
 
-                    terminate_child(child)
+                    terminate(child, yml_config)
                 ibl.store_logfile(payload, current_log_file, full_log_file)
 
         github.update_state(payload, "success", "All good!")
