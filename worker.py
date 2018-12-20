@@ -191,11 +191,6 @@ def run_teardown(yml_config):
     child.close()
 
 
-def terminate(child, yml_config):
-    terminate_child(child)
-    run_teardown(yml_config)
-
-
 class JobThread(threading.Thread):
     """Thread class with a stop() method. The thread itself has to check
 regularly for the stopped() condition."""
@@ -256,7 +251,8 @@ regularly for the stopped() condition."""
                         c, e, cr, to = get_yaml_cmd(i)
 
                         if not do_pexpect(child, c, e, cr, to):
-                            terminate(child, yml_config)
+                            terminate_child(child)
+                            run_teardown(yml_config)
                             log.error("job type: {} failed!".format(logtype))
                             ibl.store_logfile(payload, current_log_file,
                                               full_log_file)
@@ -265,7 +261,8 @@ regularly for the stopped() condition."""
                             return status.FAIL
 
                         if self.stopped():
-                            terminate(child, yml_config)
+                            terminate_child(child)
+                            run_teardown(yml_config)
                             log.debug("job type: {} cancelled!".format(
                                       logtype))
                             ibl.store_logfile(payload, current_log_file,
@@ -275,8 +272,8 @@ regularly for the stopped() condition."""
                                                 "".format(logtype))
                             return status.CANCEL
 
-                    terminate(child, yml_config)
                 ibl.store_logfile(payload, current_log_file, full_log_file)
+            run_teardown(yml_config)
 
         github.update_state(payload, "success", "All good!")
         return status.SUCCESS
