@@ -8,7 +8,7 @@ clone:
         - cmd: cd $MYWORKSPACE
           # Clone the git corresponding to the pull request
         - cmd: repo init -u https://github.com/OP-TEE/manifest.git -m hikey.xml --reference /home/optee/devel/reference
-          timeout: 15
+          timeout: 25
         - cmd: repo sync -j4
           timeout: 60
 
@@ -33,11 +33,12 @@ pre_build:
         - cmd: export BR2_DL_DIR=/tmp/buildroot_dl
 
 build:
-        - cmd: make -j8 CFG_RPMB_WRITE_KEY=y CFG_RPMB_FS=y CFG_SECURE_DATA_PATH=y CFG_WITH_PAGER=y CFG_TEE_CORE_LOG_LEVEL=1 CFG_LOCKDEP=y
+        # Default flags
+        - cmd: make -j8 CFG_DRAM_SIZE_GB=1 CFG_FLASH_SIZE=4 CFG_RPMB_WRITE_KEY=y CFG_RPMB_FS=y CFG_SECURE_DATA_PATH=y CFG_WITH_PAGER=y CFG_TEE_CORE_LOG_LEVEL=1 CFG_LOCKDEP=y CFG_CORE_MBEDTLS_MPI=y
           timeout: 1500
 
 pre_flash:
-        - cmd: export HIKEY_TOOL=/home/optee/devel/hikey_auto_boot/tools/hidusb-relay-cmd/hikey6220_flash.py
+        - cmd: export HIKEY_TOOL=/home/optee/devel/ibart/tools/hidusb-relay-cmd/hikey6220_flash.py
 
 flash:
         - cmd: $HIKEY_TOOL --recovery
@@ -151,5 +152,5 @@ test:
         - cmd: echo $?
           exp: '\r\n0'
 
-post_test:
-        - cmd: $HIKEY_TOOL --off
+teardown:
+        - cmd: /home/optee/devel/ibart/tools/hidusb-relay-cmd/hikey6220_flash.py --off
