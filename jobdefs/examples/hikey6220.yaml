@@ -85,37 +85,37 @@ test:
         - cmd: xtest
           timeout: 1200
 
-        - cmd: hello_world
+        - cmd: optee_example_hello_world
           exp: '\r\nIBART'
           timeout: 10
         - cmd: echo $?
           exp: '\r\n0'
 
-        - cmd: hotp
+        - cmd: optee_example_hotp
           exp: '\r\nIBART'
           timeout: 10
         - cmd: echo $?
           exp: '\r\n0'
 
-        - cmd: random
+        - cmd: optee_example_random
           exp: '\r\nIBART'
           timeout: 10
         - cmd: echo $?
           exp: '\r\n0'
 
-        - cmd: aes
+        - cmd: optee_example_aes
           exp: '\r\nIBART'
           timeout: 10
         - cmd: echo $?
           exp: '\r\n0'
 
-        - cmd: secure_storage
+        - cmd: optee_example_secure_storage
           exp: '\r\nIBART'
           timeout: 10
         - cmd: echo $?
           exp: '\r\n0'
 
-        - cmd: acipher 1024 foobar
+        - cmd: optee_example_acipher 1024 foobar
           exp: '\r\nEncrypted buffer'
           timeout: 25
         - cmd: echo $?
