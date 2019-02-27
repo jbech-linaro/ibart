@@ -125,7 +125,12 @@ def spawn_pexpect_child(job):
         log.error("Trying to spawn child with no Job")
         return
 
-    rcfile = '--rcfile {}/.bashrc'.format(os.getcwd())
+    # In some cases there seems to be left over from PS1 even though we export
+    # a plain IBART both in the rcfile as well as exporting it. This trick
+    # by setting TERM seems to resolve that issue.
+    os.environ["TERM"] = "dumb"
+
+    rcfile = '{}/.bashrc'.format(os.getcwd())
     child = pexpect.spawnu('/bin/bash', ['--rcfile', rcfile],
                            encoding='utf-8')
 
