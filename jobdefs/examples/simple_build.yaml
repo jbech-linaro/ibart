@@ -11,11 +11,8 @@ clone:
 pre_build:
         - cmd: mkdir -p $MYWORKSPACE/$PR_NAME/build
         - cmd: cd $MYWORKSPACE/$PR_NAME/build
-        - cmd: export PATH=:/home/optee/devel/reference/toolchains/aarch32/bin:$PATH
-        - cmd: cmake -DCMAKE_C_COMPILER=arm-linux-gnueabihf-gcc -DCMAKE_INSTALL_PREFIX=/tmp/optee_client/install ..
+        - cmd: export PATH=$HOME/toolchains/aarch32/bin:$PATH
+        - cmd: cmake -DCMAKE_C_COMPILER=arm-linux-gnueabihf-gcc -GNinja ..
 
 build:
-        - cmd: make
-
-post_build:
-        - cmd: make install
+        - cmd: ninja
