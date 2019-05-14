@@ -6,3 +6,5 @@ docs/_build
 last_blob.json
 logs/*
 setup
+ibartenv/*
+jobdefs/*.yaml
