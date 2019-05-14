@@ -1,4 +1,5 @@
 pre_clone:
+        - cmd: export PATH=/usr/bin/:$PATH
         - cmd: export MYWORKSPACE=/home/optee/devel/hikey
         - cmd: rm -rf /home/optee/devel/hikey
           timeout: 15
