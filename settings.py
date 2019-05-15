@@ -11,7 +11,7 @@ def get_settings_yml_file():
 
     try:
         with open(config_file, 'r') as yml:
-            yml_file = yaml.load(yml)
+            yml_file = yaml.load(yml, Loader=yaml.SafeLoader)
     except KeyError:
         log.error("Couldn't find {}", config_file)
         exit()
