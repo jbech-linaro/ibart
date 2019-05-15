@@ -69,13 +69,6 @@ def stop_page(pr_id, pr_sha1):
     return redirect(request.referrer)
 
 
-# TODO: This will show PRs from all gits and not a unique git
-@app.route('/pr/<int:pr_number>')
-def show_pr(pr_number):
-    sql_data = db.get_pr(pr_number)
-    return render_template('pr.html', sd=sql_data, pr_number=pr_number)
-
-
 # logs/jbech-linaro/
 @app.route('/logs/<owner>/<project>')
 def show_pr_full_name(owner, project):
