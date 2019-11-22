@@ -1,4 +1,5 @@
 pre_clone:
+        - cmd: export PATH=/usr/bin/:$PATH
         - cmd: export MYWORKSPACE=/home/optee/devel/qemu
         - cmd: rm -rf /home/optee/devel/qemu
           timeout: 15
@@ -8,9 +9,9 @@ clone:
         - cmd: cd $MYWORKSPACE
           # Clone the git corresponding to the pull request
         - cmd: repo init -u https://github.com/OP-TEE/manifest.git -m default.xml --reference /home/optee/devel/reference
-          timeout: 15
+          timeout: 30
         - cmd: repo sync -j4
-          timeout: 60
+          timeout: 120
 
 post_clone:
         - cmd: cd $PR_NAME

@@ -1,6 +1,9 @@
 pre_clone:
-        - cmd: export MYWORKSPACE=/media/jbech/SSHD_LINUX/devel/optee_projects/qemu-ibart
+        - cmd: export PATH=/usr/bin/:$PATH
+        - cmd: export MYWORKSPACE=/home/optee/devel/qemu
+        - cmd: rm -rf /home/optee/devel/qemu
           timeout: 15
+        - cmd: mkdir -p $MYWORKSPACE
 
 post_build:
         - cmd: export BINARIES_PATH=$MYWORKSPACE/out/bin

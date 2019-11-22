@@ -9,9 +9,9 @@ clone:
         - cmd: cd $MYWORKSPACE
           # Clone the git corresponding to the pull request
         - cmd: repo init -u https://github.com/OP-TEE/manifest.git -m hikey.xml --reference /home/optee/devel/reference
-          timeout: 25
+          timeout: 30
         - cmd: repo sync -j4
-          timeout: 60
+          timeout: 120
 
 post_clone:
         - cmd: cd $PR_NAME
@@ -35,7 +35,7 @@ pre_build:
 
 build:
         # Default flags
-        - cmd: make -j8 CFG_DRAM_SIZE_GB=1 CFG_FLASH_SIZE=4 CFG_RPMB_WRITE_KEY=y CFG_RPMB_FS=y CFG_SECURE_DATA_PATH=y CFG_WITH_PAGER=y CFG_TEE_CORE_LOG_LEVEL=1 CFG_LOCKDEP=y CFG_CORE_MBEDTLS_MPI=y
+        - cmd: make -j8 CFG_DRAM_SIZE_GB=1 CFG_FLASH_SIZE=4 CFG_RPMB_WRITE_KEY=y CFG_RPMB_FS=y CFG_SECURE_DATA_PATH=y CFG_WITH_PAGER=y CFG_TEE_CORE_LOG_LEVEL=2 CFG_LOCKDEP=y CFG_CORE_MBEDTLS_MPI=y CFG_ENCRYPT_TA=y
           timeout: 1500
 
 pre_flash:
