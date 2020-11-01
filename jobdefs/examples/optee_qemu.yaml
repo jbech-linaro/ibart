@@ -11,7 +11,7 @@ clone:
         - cmd: repo init -u https://github.com/OP-TEE/manifest.git -m default.xml --reference /home/optee/devel/reference
           timeout: 30
         - cmd: repo sync -j4
-          timeout: 120
+          timeout: 180
 
 post_clone:
         - cmd: cd $PR_NAME
@@ -19,7 +19,7 @@ post_clone:
         - cmd: git remote add submitter $PR_CLONE_URL
           # Update to see the actual changes
         - cmd: git remote update
-          timeout: 20
+          timeout: 60
           # Checkout the commit corresponding to the pull request
         - cmd: git checkout $PR_SHA1
 
@@ -33,8 +33,8 @@ pre_build:
           # Also save/use the downloaded buildroot files
         - cmd: export BR2_DL_DIR=/tmp/buildroot_dl
 build:
-        - cmd: make -j8
-          timeout: 1200
+        - cmd: make -j8 CFG_LOCKDEP=y CFG_LOCKDEP_RECORD_STACK=n
+          timeout: 1500
 
 post_build:
         - cmd: export BINARIES_PATH=$MYWORKSPACE/out/bin
@@ -52,7 +52,7 @@ pre_boot:
 # sections, then things would fail (since QEMU will be killed by the end of a
 # section).
 test:
-        - cmd: '$QEMU -nographic -monitor none -machine virt -machine secure=on -cpu cortex-a15 -smp $QEMU_SMP -d unimp -semihosting-config enable,target=native -m 1057 -serial stdio -serial file:serial1.log -bios $BL1_BIN'
+        - cmd: '$QEMU -nographic -monitor none -machine virt -machine secure=on -cpu cortex-a15 -smp $QEMU_SMP -d unimp -semihosting-config enable,target=native -m 1057 -serial stdio -serial file:serial1.log -smp 2 -bios $BL1_BIN'
           exp: 'buildroot login:'
           timeout: 20
         - cmd: root
