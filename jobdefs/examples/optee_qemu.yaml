@@ -33,7 +33,7 @@ pre_build:
           # Also save/use the downloaded buildroot files
         - cmd: export BR2_DL_DIR=/tmp/buildroot_dl
 build:
-        - cmd: make -j8 CFG_LOCKDEP=y CFG_LOCKDEP_RECORD_STACK=n
+        - cmd: make -j8 CFG_LOCKDEP=y CFG_LOCKDEP_RECORD_STACK=n CFG_ENABLE_EMBEDDED_TESTS=n
           timeout: 1500
 
 post_build:
