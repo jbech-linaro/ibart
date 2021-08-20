@@ -36,9 +36,14 @@
 			<td>{{ date }}</td>
 			<td>{{ run_time }}</td>
 			<td>{{ status }}</td>
+			{% if "google_id" in session: %}
 			<td><a href="{{ url_for('stop_page', pr_id=pr_id, pr_sha1=sha1) }}">[stop]</a> |
 				<a href="{{ url_for('restart_page', pr_id=pr_id, pr_sha1=sha1) }}">[restart]</a>
 			</td>
+			{% else %}
+			<td>[stop] | [restart]</a>
+			</td>
+			{% endif %}
 		</tr>
 		{% endfor %}
 	</table>

@@ -100,3 +100,7 @@ p.c {
 	margin: 30px;
 	font-size: 0.7em;
 }
+
+.center {
+	text-align: center;
+}
