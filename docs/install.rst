@@ -28,7 +28,9 @@ If you prefer working with pip based install instead of the above, then you shou
 
 .. code-block:: bash
 
-    $ pip install --user pexpect pyyaml flask requests
+    $ pip install --user pexpect pyyaml flask requests google-oauth2 \
+                         google-api-python-client google-auth \
+                         google-auth-oauthlib google-auth-httplib2
 
 For Ubuntu and Debian based system you also need the pip package
 
