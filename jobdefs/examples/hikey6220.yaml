@@ -31,12 +31,13 @@ pre_build:
         - cmd: cd $MYWORKSPACE/build
           #- cmd: make toolchains -j2
           # Also save/use the downloaded buildroot files
-        - cmd: export BR2_DL_DIR=/tmp/buildroot_dl
+        - cmd: export BR2_DL_DIR=$HOME/tmp/buildroot_dl
+        - cmd: export BR2_CCACHE_DIR=$HOME/.ccache
 
 build:
         # Default flags
-        - cmd: make -j8 CFG_DRAM_SIZE_GB=1 CFG_FLASH_SIZE=4 CFG_RPMB_WRITE_KEY=y CFG_RPMB_FS=y CFG_SECURE_DATA_PATH=y CFG_WITH_PAGER=y CFG_TEE_CORE_LOG_LEVEL=2 CFG_CORE_MBEDTLS_MPI=y CFG_ENCRYPT_TA=y GP_PACKAGE=/home/optee/gp/TEE_Initial_Configuration-Test_Suite_v2_0_0_2-2017_06_09.7z CFG_ENABLE_EMBEDDED_TESTS=y CFG_IN_TREE_EARLY_TAS=pkcs11/fd02c9da-306c-48c7-a49c-bbd827ae86ee CFG_PKCS11_TA=y
-          timeout: 1500
+        - cmd: make -j8 CFG_DRAM_SIZE_GB=1 CFG_FLASH_SIZE=4 CFG_RPMB_WRITE_KEY=y CFG_RPMB_FS=y CFG_SECURE_DATA_PATH=n CFG_WITH_PAGER=y CFG_TEE_CORE_LOG_LEVEL=2 CFG_CORE_MBEDTLS_MPI=y CFG_ENCRYPT_TA=y GP_PACKAGE=/home/optee/gp/TEE_Initial_Configuration-Test_Suite_v2_0_0_2-2017_06_09.7z CFG_ENABLE_EMBEDDED_TESTS=y
+          timeout: 3500
 
 pre_flash:
         - cmd: export HIKEY_TOOL=/home/optee/devel/ibart/tools/hidusb-relay-cmd/hikey6220_flash.py
@@ -122,21 +123,6 @@ test:
         - cmd: echo $?
           exp: '\r\n0'
 
-        - cmd: xtest --sdp-basic
-          exp: 'NS invokes SDP TA'
-        - exp: '\r\nTest passed'
-          timeout: 20
-
-        - exp: 'SDP TA invokes SDP TA'
-        - exp: '\r\nTest passed'
-          timeout: 20
-
-        - exp: 'SDP TA invokes SDP pTA'
-        - exp: '\r\nTest passed'
-          timeout: 20
-
-        - exp: 'NS invokes SDP pTA'
-        - exp: '\r\nTest passed'
           timeout: 20
 
         - exp: '\r\nIBART'

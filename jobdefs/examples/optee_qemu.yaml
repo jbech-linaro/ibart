@@ -31,17 +31,18 @@ pre_build:
         - cmd: cd $MYWORKSPACE/build
           #- cmd: make toolchains -j2
           # Also save/use the downloaded buildroot files
-        - cmd: export BR2_DL_DIR=/tmp/buildroot_dl
+        - cmd: export BR2_DL_DIR=$HOME/tmp/buildroot_dl
+        - cmd: export BR2_CCACHE_DIR=$HOME/.ccache
 build:
         - cmd: make -j8 CFG_LOCKDEP=y CFG_LOCKDEP_RECORD_STACK=n CFG_ENABLE_EMBEDDED_TESTS=n CFG_IN_TREE_EARLY_TAS=pkcs11/fd02c9da-306c-48c7-a49c-bbd827ae86ee CFG_PKCS11_TA=y
-          timeout: 1500
+          timeout: 3500
 
 post_build:
         - cmd: export BINARIES_PATH=$MYWORKSPACE/out/bin
         - cmd: ln -sf $MYWORKSPACE/out-br/images/rootfs.cpio.gz $BINARIES_PATH
 
 pre_boot:
-        - cmd: export QEMU=$MYWORKSPACE/qemu/arm-softmmu/qemu-system-arm
+        - cmd: export QEMU=$MYWORKSPACE/qemu/build/arm-softmmu/qemu-system-arm
         - cmd: export QEMU_SMP=1
         - cmd: export BL1_BIN=$BINARIES_PATH/bl1.bin
         - cmd: cd $BINARIES_PATH
@@ -65,6 +66,6 @@ test:
           # get rid of this).
         - cmd: xtest
           exp: '\r\nIBART'
-          timeout: 600
+          timeout: 900
         - cmd: echo $?
           exp: '\r\n0'
