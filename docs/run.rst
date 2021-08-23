@@ -9,7 +9,9 @@ Exports
 * ``$ export IBART_URL=http://URL-to-the-server:5000``
 * ``$ export GITHUB_SECRET="The string you provided in the webhooks"``
 * ``$ export GITHUB_TOKEN="my-long-hex-string"`` which you generated at the `Peronal access token`_ page.
+* ``$ export APP_SECRET_KEY="Some key that is hard to guess"`` this signs the cookies (see `Flask sessions`_ for more information)
 
+.. _FLask sessions: https://flask.palletsprojects.com/en/1.0.x/quickstart/#sessions
 .. _Peronal access token: https://github.com/settings/tokens
 
 Besides that there are the following optional exports that will override what
@@ -25,6 +27,12 @@ Server Settings
 Set up global settings in `configs/settings.yaml`_. Note that quite a few of them are not in use in this current version.
 
 .. _configs/settings.yaml: ../configs/settings.yaml
+
+OAuth file
+----------
+The `client_secret.json` file downloaded using the install steps, needs to be
+placed in the root of the `ibart` git. However **don't** add it to the git tree,
+since that is a file containing sensitive data!
 
 Default job definitions
 -----------------------
@@ -42,7 +50,7 @@ Since IBART runs all job definition it finds in the ``jobdefs`` folder in alphab
 
 By doing so, IBART will first run the jobs ``01-optee-qemu.yaml`` and when that has completed it will continue with ``02-linux-kernel.yaml``. You don't have to number like this, but the running order might not be what you expect if you don't do it.
 
-At this moment it is only possible to use job definitions at the server. In the future we will add support for reading a ``ibart.yaml`` from the Git / pull request itself.
+At this moment it is only possible to use job definitions at the server. In the future we will add support for reading a ``ibart.yaml`` from the Git / pull request itself (see proof of concept branch https://github.com/jbech-linaro/ibart/tree/remote_yaml).
 
 Starting IBART
 --------------
