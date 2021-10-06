@@ -132,7 +132,7 @@ def spawn_pexpect_child(job):
 
     rcfile = '{}/.bashrc'.format(os.getcwd())
     child = pexpect.spawnu('/bin/bash', ['--rcfile', rcfile],
-                           encoding='utf-8')
+                           encoding='utf-8', codec_errors='ignore')
 
     # Make environment variables available in YAML job definitions.
     export_variables(child, job)
@@ -168,7 +168,7 @@ def get_job_definitions():
 def run_teardown(yml_config):
     rcfile = '--rcfile {}/.bashrc'.format(os.getcwd())
     child = pexpect.spawnu('/bin/bash', ['--rcfile', rcfile],
-                           encoding='utf-8')
+                           encoding='utf-8', codec_errors='ignore')
 
     try:
         yml_iter = yml_config['teardown']
