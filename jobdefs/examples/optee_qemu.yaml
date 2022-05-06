@@ -10,8 +10,11 @@ clone:
           # Clone the git corresponding to the pull request
         - cmd: repo init -u https://github.com/OP-TEE/manifest.git -m default.xml --reference /home/optee/devel/reference
           timeout: 30
+        - cmd: cd .repo/repo
+        - cmd: git checkout a3ac81627885f78b9391ff291c4a5bc617494045
+        - cmd: cd $MYWORKSPACE
         - cmd: repo sync -j4
-          timeout: 180
+          timeout: 600
 
 post_clone:
         - cmd: cd $PR_NAME
@@ -34,7 +37,7 @@ pre_build:
         - cmd: export BR2_DL_DIR=$HOME/tmp/buildroot_dl
         - cmd: export BR2_CCACHE_DIR=$HOME/.ccache
 build:
-        - cmd: make -j8 CFG_LOCKDEP=y CFG_LOCKDEP_RECORD_STACK=n CFG_ENABLE_EMBEDDED_TESTS=n CFG_IN_TREE_EARLY_TAS=pkcs11/fd02c9da-306c-48c7-a49c-bbd827ae86ee CFG_PKCS11_TA=y
+        - cmd: make -j8 CFG_LOCKDEP=y CFG_LOCKDEP_RECORD_STACK=n CFG_ENABLE_EMBEDDED_TESTS=n CFG_IN_TREE_EARLY_TAS=pkcs11/fd02c9da-306c-48c7-a49c-bbd827ae86ee CFG_PKCS11_TA=y BR2_PER_PACKAGE_DIRECTORIES=n
           timeout: 3500
 
 post_build:
@@ -66,6 +69,6 @@ test:
           # get rid of this).
         - cmd: xtest
           exp: '\r\nIBART'
-          timeout: 900
+          timeout: 1800
         - cmd: echo $?
           exp: '\r\n0'
