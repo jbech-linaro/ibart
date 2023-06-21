@@ -231,7 +231,7 @@ regularly for the stopped() condition."""
             log.debug("full_log_file: {}".format(full_log_file))
 
             with open(jd, 'r') as yml:
-                yml_config = yaml.load(yml)
+                yml_config = yaml.safe_load(yml)
 
             # Loop all defined values
             for k, logtype in ibl.log2str.items():

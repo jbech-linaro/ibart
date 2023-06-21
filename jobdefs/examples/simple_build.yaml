@@ -2,6 +2,7 @@ pre_clone:
         - cmd: export MYWORKSPACE=/tmp/test
         - cmd: rm -rf /tmp/test
         - cmd: mkdir -p $MYWORKSPACE
+        - cmd: export $CCACHE_DIR=/home/optee/.cache/ccache
 
 clone:
         - cmd: cd $MYWORKSPACE

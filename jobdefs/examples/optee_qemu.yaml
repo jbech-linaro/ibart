@@ -1,14 +1,14 @@
 pre_clone:
         - cmd: export PATH=/usr/bin/:$PATH
-        - cmd: export MYWORKSPACE=/home/optee/devel/qemu
-        - cmd: rm -rf /home/optee/devel/qemu
+        - cmd: export MYWORKSPACE=/dev/shm/qemu
+        - cmd: rm -rf $MYWORKSPACE
           timeout: 15
         - cmd: mkdir -p $MYWORKSPACE
 
 clone:
         - cmd: cd $MYWORKSPACE
           # Clone the git corresponding to the pull request
-        - cmd: repo init -u https://github.com/OP-TEE/manifest.git -m default.xml --reference /home/optee/devel/reference
+        - cmd: repo init -u https://github.com/OP-TEE/manifest.git -m default.xml --reference /mnt/storage/mirrors/reference
           timeout: 30
         - cmd: cd .repo/repo
         - cmd: git checkout a3ac81627885f78b9391ff291c4a5bc617494045
@@ -30,14 +30,14 @@ pre_build:
         # I'm using a locally downloaded toolchain instead of downloading it
         # every time.
         - cmd: cd $MYWORKSPACE
-        - cmd: ln -s /home/optee/devel/reference/toolchains .
+        - cmd: ln -s $HOME/toolchains .
         - cmd: cd $MYWORKSPACE/build
           #- cmd: make toolchains -j2
           # Also save/use the downloaded buildroot files
-        - cmd: export BR2_DL_DIR=$HOME/tmp/buildroot_dl
+        - cmd: export BR2_DL_DIR=/mnt/storage/buildroot_cache/download
         - cmd: export BR2_CCACHE_DIR=$HOME/.ccache
 build:
-        - cmd: make -j8 CFG_LOCKDEP=y CFG_LOCKDEP_RECORD_STACK=n CFG_ENABLE_EMBEDDED_TESTS=n CFG_IN_TREE_EARLY_TAS=pkcs11/fd02c9da-306c-48c7-a49c-bbd827ae86ee CFG_PKCS11_TA=y BR2_PER_PACKAGE_DIRECTORIES=n
+        - cmd: make -j28 CFG_LOCKDEP=y CFG_LOCKDEP_RECORD_STACK=n CFG_ENABLE_EMBEDDED_TESTS=n CFG_IN_TREE_EARLY_TAS=pkcs11/fd02c9da-306c-48c7-a49c-bbd827ae86ee CFG_PKCS11_TA=y BR2_PER_PACKAGE_DIRECTORIES=n
           timeout: 3500
 
 post_build:
@@ -46,7 +46,7 @@ post_build:
 
 pre_boot:
         - cmd: export QEMU=$MYWORKSPACE/qemu/build/arm-softmmu/qemu-system-arm
-        - cmd: export QEMU_SMP=1
+        - cmd: export QEMU_SMP=2
         - cmd: export BL1_BIN=$BINARIES_PATH/bl1.bin
         - cmd: cd $BINARIES_PATH
 
@@ -56,7 +56,7 @@ pre_boot:
 # sections, then things would fail (since QEMU will be killed by the end of a
 # section).
 test:
-        - cmd: '$QEMU -nographic -monitor none -machine virt -machine secure=on -cpu cortex-a15 -smp $QEMU_SMP -d unimp -semihosting-config enable,target=native -m 1057 -serial stdio -serial file:serial1.log -smp 2 -bios $BL1_BIN'
+        - cmd: '$QEMU -nographic -monitor none -machine virt -machine secure=on -cpu cortex-a15 -smp $QEMU_SMP -d unimp -semihosting-config enable,target=native -m 1057 -serial stdio -serial file:serial1.log -bios $BL1_BIN'
           exp: 'buildroot login:'
           timeout: 20
         - cmd: root
